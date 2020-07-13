@@ -1,0 +1,19 @@
+<div 
+    *ngFor="let i of rows"
+    class="line"
+>
+    <div
+        [style.backgroundColor]="i === activeRow ? '#E0E5EB' : '#F4F7FA'"
+        class="number"
+    >{{ i }}
+    </div>
+
+    <div
+        [style.backgroundColor]="i === activeRow ? '#F7FAFC' : '#FFFFFF'"
+        (focus)="onFocus(i)"
+        (input)="onTextTyped($event, i)"
+        contenteditable="true"
+        class="input"
+    >
+    </div>
+</div>

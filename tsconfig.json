@@ -14,7 +14,13 @@
     "lib": [
       "es2018",
       "dom"
-    ]
+    ],
+    "paths": {
+      "ngx-infi-markdown": [
+        "dist/ngx-infi-markdown/ngx-infi-markdown",
+        "dist/ngx-infi-markdown"
+      ]
+    }
   },
   "angularCompilerOptions": {
     "fullTemplateTypeCheck": true,
