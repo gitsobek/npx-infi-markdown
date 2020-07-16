@@ -4,7 +4,7 @@ import { Directive, ElementRef, OnInit, Input, HostListener } from '@angular/cor
   selector: '[appResizable]',
 })
 export class ResizableDirective implements OnInit {
-  @Input() resizableGrabWidth = 3;
+  @Input() resizableGrabWidth = 2;
   @Input() resizableMinWidth = 100;
 
   dragging = false;
@@ -17,7 +17,7 @@ export class ResizableDirective implements OnInit {
 
   ngOnInit(): void {
     this.windowWidth = window.innerWidth;
-    this.el.nativeElement.style['border-right'] = this.resizableGrabWidth + 'px solid #DCDCDC';
+    this.el.nativeElement.style['border-right'] = this.resizableGrabWidth + 'px dashed #D2DBE9';
   }
 
   @HostListener('window:resize', ['$event'])

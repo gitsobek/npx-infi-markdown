@@ -1,3 +1,15 @@
+<!-- Tag selector -->
+<div class="tags">
+    <div class="tag-col tag-col--1"></div>
+    <div class="tag-col tag-col--2">
+        <span class="tag-info">Headers</span>
+        <div class="seperator"></div>
+        <div (click)="onTagSet('header-lg')" class="tag tag--large">L</div>
+        <div (click)="onTagSet('header-md')" class="tag tag--medium">M</div>
+    </div>
+</div>
+
+<!-- Editor -->
 <div 
     *ngFor="let i of rows"
     class="line"
@@ -9,9 +21,12 @@
     </div>
 
     <div
+        #editableDiv
         [style.backgroundColor]="i === activeRow ? '#F7FAFC' : '#FFFFFF'"
         (focus)="onFocus(i)"
         (input)="onTextTyped($event, i)"
+        (keydown)="onKeyEntered($event, i)"
+        (keypress)="onKeyPressed($event, i)"
         contenteditable="true"
         class="input"
     >

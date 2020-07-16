@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { TreeService } from '../../services/tree.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'preview',
@@ -6,7 +8,11 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./preview.component.scss'],
 })
 export class PreviewComponent implements OnInit {
-  constructor() {}
+  content$: Observable<string>;
+
+  constructor(private treeService: TreeService) {
+    this.content$ = this.treeService.contentOb$;
+  }
 
   ngOnInit(): void {}
 }
