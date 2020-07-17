@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },
   "lint-staged": {
@@ -24,7 +25,8 @@
     "publish:demo": "npx angular-cli-ghpages --dir=./dist/ngx-infi-markdown-showcase",
     "copy:readme": "copyfiles ./README.md ./dist/ngx-infi-markdown",
     "format:check": "prettier --list-different 'projects/**/*.ts'",
-    "format:write": "prettier --write 'projects/**/*.ts'"
+    "format:write": "prettier --write 'projects/**/*.ts'",
+    "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
   },
   "private": true,
   "dependencies": {
@@ -45,6 +47,9 @@
     "@angular-devkit/build-ng-packagr": "~0.901.10",
     "@angular/cli": "~9.1.8",
     "@angular/compiler-cli": "~9.1.11",
+    "@commitlint/cli": "^9.1.1",
+    "@commitlint/config-conventional": "^9.1.1",
+    "@commitlint/prompt": "^9.1.1",
     "@types/jasmine": "~3.5.0",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.11.1",
