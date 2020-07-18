@@ -36,3 +36,15 @@ export function getCaretPosition(elem) {
   if (cum_length[0] <= cum_length[1]) return cum_length;
   return [cum_length[1], cum_length[0]];
 }
+
+export function setCaretAtPosition(caretPosition: number, element: HTMLDivElement): void {
+  const textNode = element.lastChild;
+
+  const range = document.createRange();
+  range.setStart(textNode, caretPosition);
+  range.setEnd(textNode, caretPosition);
+
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+}

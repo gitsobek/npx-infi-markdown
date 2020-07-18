@@ -1,8 +1,8 @@
 import { Component, OnInit, QueryList, ViewChildren, AfterViewInit } from '@angular/core';
-import { Payload } from '../../models/Payload';
 import { TreeService } from '../../services/tree.service';
-import { getCaretPosition } from '../../utils';
+import { Payload } from '../../models/Payload';
 import { Tag } from '../../models/Tag';
+import { getCaretPosition, setCaretAtPosition } from '../../utils';
 
 @Component({
   selector: 'editor',
@@ -17,7 +17,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   divs: QueryList<any>;
 
   constructor(private treeService: TreeService) {
-    this.rows = range(1, 5);
+    this.rows = range(1, treeService.entityValues.length);
   }
 
   ngOnInit(): void {}
@@ -26,9 +26,21 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this.divs.changes.subscribe((data: any) => {
       data._results[this.activeRow - 1].nativeElement.focus();
     });
+    this.repaintEditor();
   }
 
-  onFocus(rowNo: number) {
+  private repaintEditor(): void {
+    const entityValues = this.treeService.entityValues;
+    this.rows = range(1, entityValues.length);
+
+    setTimeout(() => {
+      this.divs.forEach((div, i) => {
+        div.nativeElement.innerHTML = entityValues[i] || '';
+      });
+    });
+  }
+
+  onFocus(rowNo: number): void {
     this.activeRow = rowNo;
   }
 
@@ -42,38 +54,89 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this.treeService.updateEntityTree(payload);
   }
 
-  onKeyPressed(event, rowNo: number): boolean {
-    let { high } = this.rows;
+  onKeyPressed(event, rowNo: number): void {
     const rowData = this.treeService.getEntityRow(rowNo);
 
     if (event.key === 'Enter') {
       const [, end] = getCaretPosition(event.target);
 
-      if ((!rowData || (rowData && rowData.text.length === end)) && this.activeRow === high) {
-        const newCount = ++high;
-        this.rows = range(1, newCount);
-        this.activeRow = newCount;
+      if (!event.shiftKey) {
+        event.preventDefault();
 
-        return false;
+        const beginText = rowData.text.slice(0, end);
+        const endText = rowData.text.slice(end);
+
+        const rows: Array<Payload> = [
+          {
+            rowNo,
+            text: beginText,
+            tag: rowData.tag,
+            opName: 'addRow',
+          },
+          {
+            rowNo: rowNo + 1,
+            text: endText,
+            tag: rowData.tag,
+            opName: 'addRow',
+          },
+        ];
+
+        this.treeService.insertEntityRow(rowNo, rows);
+        this.activeRow = rowNo + 1;
+
+        this.repaintEditor();
       }
     }
   }
 
   onKeyEntered(event, rowNo: number): void {
-    let { high } = this.rows;
+    const { high } = this.rows;
     const rowData = this.treeService.getEntityRow(rowNo);
 
     if (event.key === 'Backspace') {
-      if (high === 1 || this.activeRow === 1) {
+      const [, end] = getCaretPosition(event.target);
+
+      if (high === 1 || this.activeRow === 1 || end > 0) {
         return;
       }
 
-      if (!rowData || (rowData && rowData.text === '')) {
-        const newCount = --high;
-        this.rows = range(1, newCount);
-        this.activeRow -= 1;
+      const previousRowData = this.treeService.getEntityRow(rowNo - 1);
+      const caretPosition = previousRowData.text.length;
 
+      const text = rowData.text === '<br>' ? '' : rowData.text;
+      this.treeService.removeEntityRow(rowNo, text);
+      this.activeRow -= 1;
+
+      this.repaintEditor();
+
+      const divAffected = this.divs.find((x, i) => i === rowNo - 2).nativeElement;
+
+      if (caretPosition > 0) {
+        setTimeout(() => {
+          setCaretAtPosition(caretPosition, divAffected);
+        });
+      }
+    } else if (event.key === 'Delete') {
+      const [, end] = getCaretPosition(event.target);
+
+      if (end !== rowData.text.length) {
         return;
+      }
+
+      const nextRowData = this.treeService.getEntityRow(rowNo + 1);
+      const caretPosition = rowData.text.length;
+
+      const text = nextRowData.text === '<br>' ? '' : nextRowData.text;
+      this.treeService.removeEntityRow(rowNo + 1, text);
+
+      this.repaintEditor();
+
+      const divAffected = this.divs.find((x, i) => i === rowNo - 1).nativeElement;
+
+      if (caretPosition > 0) {
+        setTimeout(() => {
+          setCaretAtPosition(caretPosition, divAffected);
+        });
       }
     } else if (event.key === 'ArrowUp') {
       if (this.activeRow === 1) {
