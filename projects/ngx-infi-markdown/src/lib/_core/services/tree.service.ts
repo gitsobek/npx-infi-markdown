@@ -9,24 +9,43 @@ export const defaultStyles: { [key in Tag]: any } = {
   'header-lg': {
     htmlTag: 'h1',
     styles: {
-      'font-size': '22px',
-      'font-weight': '800',
+      'font-size': '72px',
+      'letter-spacing': '.42px',
+      'font-weight': '600',
     },
   },
   'header-md': {
     htmlTag: 'h3',
-    styles: {},
+    styles: {
+      'font-size': '32px',
+      'letter-spacing': '.42px',
+      'font-weight': '400',
+    },
   },
   paragraph: {
     htmlTag: 'p',
-    styles: {},
+    styles: {
+      'font-size': '21px',
+      'letter-spacing': '.84px',
+    },
+  },
+  quote: {
+    htmlTag: 'div',
+    styles: {
+      'font-style': 'italic',
+      'font-size': '24px',
+      color: '#000',
+      'text-align': 'left',
+      'border-left': '1px solid #000',
+      padding: '15px 25px',
+    },
   },
 };
 
 const defaultEntities: Array<Entity> = [
   {
     rowNo: 1,
-    text: '1',
+    text: 'Hi,',
     tag: 'paragraph',
     htmlContent: '',
   },
@@ -38,13 +57,13 @@ const defaultEntities: Array<Entity> = [
   },
   {
     rowNo: 3,
-    text: '3',
+    text: 'Have fun while using this editor.',
     tag: 'paragraph',
     htmlContent: '',
   },
   {
     rowNo: 4,
-    text: '4',
+    text: '---',
     tag: 'paragraph',
     htmlContent: '',
   },
@@ -151,7 +170,7 @@ export class TreeService {
   }
 
   private createSegment(text: string, tag: Tag) {
-    let segment = '<div style="margin: 15px 0">';
+    let segment = '<div style="margin: 40px 0">';
 
     const { htmlTag, styles } = defaultStyles[tag];
 

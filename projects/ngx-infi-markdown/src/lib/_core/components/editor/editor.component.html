@@ -1,12 +1,32 @@
 <!-- Tag selector -->
 <div class="tags">
     <div class="tag-col tag-col--1"></div>
-    <div class="tag-col tag-col--2">
-        <span class="tag-info">Headers</span>
-        <div class="seperator"></div>
-        <div (click)="onTagSet('header-lg')" class="tag tag--large">L</div>
-        <div (click)="onTagSet('header-md')" class="tag tag--medium">M</div>
+    <div #toolbar class="tag-col tag-col--2">
+        <div *ngIf="hiddenSegments" #hamburger class="hamburger" (click)="openToolbar(hamburger)">
+            <div class="bar1"></div>
+            <div class="bar2"></div>
+            <div class="bar3"></div>
+            </div>
+
+        <div [style.visibility]="hiddenSegments ? 'hidden' : 'visible' " class="tag-segments">
+            <span class="tag-info">Headers</span>
+            <div class="seperator"></div>
+            <div #hlarge (click)="onTagSet('header-lg')" class="tag tag--large">L</div>
+            <div #hmedium (click)="onTagSet('header-md')" class="tag tag--medium">M</div>
+        </div>
+
+        <div [style.visibility]="hiddenSegments ? 'hidden' : 'visible' " class="tag-segments">
+            <span class="tag-info">Text</span>
+            <div class="seperator"></div>
+            <div #paragraph (click)="onTagSet('paragraph')" class="tag tag--paragraph">p</div>
+            <div #quote (click)="onTagSet('quote')" class="tag tag--quote">“ ”</div>
+        </div>        
     </div>
+</div>
+
+<!-- Toolbar for resized editor -->
+<div>
+    <template #toolbarContainer></template>
 </div>
 
 <!-- Editor -->
@@ -23,7 +43,7 @@
     <div
         #editableDiv
         [style.backgroundColor]="i === activeRow ? '#F7FAFC' : '#FFFFFF'"
-        (focus)="onFocus(i)"
+        (focus)="onFocus($event, i)"
         (input)="onTextTyped($event, i)"
         (keydown)="onKeyEntered($event, i)"
         (keypress)="onKeyPressed($event, i)"

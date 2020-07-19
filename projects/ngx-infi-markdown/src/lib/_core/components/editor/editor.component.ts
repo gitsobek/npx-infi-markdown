@@ -1,32 +1,110 @@
-import { Component, OnInit, QueryList, ViewChildren, AfterViewInit } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  QueryList,
+  ViewChildren,
+  AfterViewInit,
+  ViewChild,
+  ElementRef,
+  Renderer2,
+  Input,
+  ViewContainerRef,
+  ComponentFactoryResolver,
+  ComponentFactory,
+  ComponentRef,
+  OnDestroy,
+} from '@angular/core';
 import { TreeService } from '../../services/tree.service';
 import { Payload } from '../../models/Payload';
 import { Tag } from '../../models/Tag';
 import { getCaretPosition, setCaretAtPosition } from '../../utils';
+import { MinToolbarComponent } from '../min-toolbar/min-toolbar.component';
+import { Subject, Observable } from 'rxjs';
+import { distinctUntilChanged, startWith } from 'rxjs/operators';
 
 @Component({
   selector: 'editor',
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss'],
 })
-export class EditorComponent implements OnInit, AfterViewInit {
+export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   rows: Range;
+  width: number;
+  activeTag: Tag;
   activeRow: number;
+  lastSegmentOffset: number;
+  hiddenSegments: boolean;
+  openedToolbar: boolean;
+  componentRef: ComponentRef<MinToolbarComponent>;
+
+  private toolbarState$: Subject<boolean> = new Subject<boolean>();
+  toolbarStateObs$: Observable<boolean> = this.toolbarState$.asObservable().pipe(distinctUntilChanged());
 
   @ViewChildren('editableDiv')
   divs: QueryList<any>;
 
-  constructor(private treeService: TreeService) {
-    this.rows = range(1, treeService.entityValues.length);
+  @ViewChild('hlarge')
+  hLargeEl: ElementRef<any>;
+
+  @ViewChild('hmedium')
+  hMediumEl: ElementRef<any>;
+
+  @ViewChild('paragraph')
+  paragraphEl: ElementRef<any>;
+
+  @ViewChild('quote')
+  quoteEl: ElementRef<any>;
+
+  @ViewChild('toolbar')
+  toolbar: ElementRef<any>;
+
+  @ViewChild('toolbarContainer', { read: ViewContainerRef }) container;
+
+  @Input() set currWidth(value: number) {
+    this.hiddenSegments = value < this.lastSegmentOffset + 10;
+
+    if (!this.hiddenSegments) {
+      this.openedToolbar = this.hiddenSegments;
+      this.toolbarState$.next(this.openedToolbar);
+    }
   }
 
-  ngOnInit(): void {}
+  tagsMap: Map<string, ElementRef>;
+
+  constructor(
+    private renderer: Renderer2,
+    private treeService: TreeService,
+    private resolver: ComponentFactoryResolver
+  ) {
+    this.rows = range(1, treeService.entityValues.length);
+    this.tagsMap = new Map<string, ElementRef>();
+  }
+
+  ngOnInit(): void {
+    this.toolbarStateObs$.subscribe((isOpened: boolean) => {
+      this.toggleToolbar(isOpened);
+    });
+  }
 
   ngAfterViewInit(): void {
+    const toolbarChildren = Array.from(this.toolbar.nativeElement.children);
+    const lastSegment = toolbarChildren[toolbarChildren.length - 1] as HTMLElement;
+    this.lastSegmentOffset = lastSegment.clientWidth + lastSegment.offsetLeft;
+
+    this.tagsMap
+      .set('header-lg', this.hLargeEl)
+      .set('header-md', this.hMediumEl)
+      .set('paragraph', this.paragraphEl)
+      .set('quote', this.quoteEl);
+
     this.divs.changes.subscribe((data: any) => {
       data._results[this.activeRow - 1].nativeElement.focus();
     });
     this.repaintEditor();
+  }
+
+  ngOnDestroy(): void {
+    this.componentRef.destroy();
   }
 
   private repaintEditor(): void {
@@ -40,8 +118,32 @@ export class EditorComponent implements OnInit, AfterViewInit {
     });
   }
 
-  onFocus(rowNo: number): void {
+  onFocus(event, rowNo: number): void {
+    const rowData = this.treeService.getEntityRow(rowNo);
+    const caretPosition = rowData.text.length;
+
     this.activeRow = rowNo;
+
+    if (caretPosition > 0) {
+      setTimeout(() => {
+        setCaretAtPosition(caretPosition, event.target);
+      });
+    }
+
+    if (this.openedToolbar) {
+      this.componentRef.instance.activeRow = rowNo;
+      this.componentRef.instance.activeTag = this.activeTag;
+      this.componentRef.instance.refreshView(rowData);
+
+      return;
+    }
+
+    if (this.activeTag && this.activeTag !== rowData.tag) {
+      this.renderer.removeClass(this.tagsMap.get(this.activeTag).nativeElement, 'tag--selected');
+    }
+
+    this.activeTag = rowData.tag;
+    this.renderer.addClass(this.tagsMap.get(rowData.tag).nativeElement, 'tag--selected');
   }
 
   onTextTyped(event, rowNo: number): void {
@@ -160,6 +262,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    this.activeTag = tagName;
+
+    const { tag = null } = this.treeService.getEntityRow(this.activeRow);
+
     const payload = {
       rowNo: this.activeRow,
       tag: tagName,
@@ -167,6 +273,44 @@ export class EditorComponent implements OnInit, AfterViewInit {
     } as Partial<Payload>;
 
     this.treeService.updateEntityTree(payload);
+
+    if (tag) {
+      this.renderer.removeClass(this.tagsMap.get(tag).nativeElement, 'tag--selected');
+    }
+
+    this.renderer.addClass(this.tagsMap.get(tagName).nativeElement, 'tag--selected');
+  }
+
+  openToolbar(hamburgerRef: any): void {
+    hamburgerRef.classList.toggle('change');
+    this.openedToolbar = !this.openedToolbar;
+    this.toolbarState$.next(this.openedToolbar);
+  }
+
+  toggleToolbar(isOpened: boolean): void {
+    if (!this.activeRow) {
+      return;
+    }
+
+    if (!isOpened) {
+      this.container.clear();
+    } else {
+      const factory: ComponentFactory<MinToolbarComponent> = this.resolver.resolveComponentFactory(MinToolbarComponent);
+      this.componentRef = this.container.createComponent(factory);
+
+      this.componentRef.instance.activeRow = this.activeRow;
+
+      this.componentRef.instance.onTagSelect.subscribe(({ tagName, rowTagName }) => {
+        this.activeTag = tagName;
+
+        if (this.activeTag && this.activeTag !== rowTagName) {
+          this.renderer.removeClass(this.tagsMap.get(rowTagName).nativeElement, 'tag--selected');
+        }
+
+        this.activeTag = tagName;
+        this.renderer.addClass(this.tagsMap.get(this.activeTag).nativeElement, 'tag--selected');
+      });
+    }
   }
 }
 

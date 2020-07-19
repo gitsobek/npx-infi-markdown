@@ -1,17 +1,24 @@
-import { Directive, ElementRef, OnInit, Input, HostListener } from '@angular/core';
+import { Directive, ElementRef, OnInit, Input, HostListener, Output, EventEmitter } from '@angular/core';
 
 @Directive({
   selector: '[appResizable]',
+  exportAs: 'appResizable',
 })
 export class ResizableDirective implements OnInit {
-  @Input() resizableGrabWidth = 2;
-  @Input() resizableMinWidth = 100;
+  @Input()
+  resizableGrabWidth = 2;
+
+  @Input()
+  resizableMinWidth = 100;
+
+  @Output()
+  onWidthChange: EventEmitter<any> = new EventEmitter<any>();
 
   dragging = false;
   windowWidth: number;
   containerWidth: number;
 
-  constructor(private el: ElementRef) {
+  constructor(public el: ElementRef) {
     this.containerWidth = this.el.nativeElement.clientWidth;
   }
 
@@ -69,7 +76,9 @@ export class ResizableDirective implements OnInit {
   private setWidth(width: number): void {
     const newWidth = Math.max(this.resizableMinWidth, width);
     const percWidth = (newWidth / this.windowWidth) * 100;
+
     this.el.nativeElement.style.width = percWidth + '%';
+    this.onWidthChange.emit({ percWidth, pxWidth: width });
   }
 
   private isInDragRegion(evt: MouseEvent): boolean {
