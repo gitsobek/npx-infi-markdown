@@ -4,5 +4,5 @@ export interface Payload {
   rowNo: number;
   text: string;
   tag: Tag;
-  opName: 'addText' | 'removeRow' | 'setTag';
+  opName: 'addText' | 'addRow' | 'removeRow' | 'setTag';
 }
