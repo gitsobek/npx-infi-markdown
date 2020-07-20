@@ -15,13 +15,21 @@ import {
   OnDestroy,
   Attribute,
 } from '@angular/core';
+import { Subject, Observable } from 'rxjs';
+import { distinctUntilChanged } from 'rxjs/operators';
+import { MinToolbarComponent } from '../min-toolbar/min-toolbar.component';
 import { TreeService } from '../../services/tree.service';
 import { Payload } from '../../models/Payload';
 import { Tag } from '../../models/Tag';
-import { getCaretPosition, setCaretAtPosition } from '../../utils';
-import { MinToolbarComponent } from '../min-toolbar/min-toolbar.component';
-import { Subject, Observable } from 'rxjs';
-import { distinctUntilChanged } from 'rxjs/operators';
+import {
+  calculateCaretPosition,
+  calculateCorrection,
+  findAllOccurrencesOfPattern,
+  getCaretPosition,
+  setCaretAtPosition,
+} from '../../utils';
+
+const BR_ELEMENT = '<br>';
 
 @Component({
   selector: 'editor',
@@ -129,15 +137,16 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onFocus(event, rowNo: number): void {
     const rowData = this.treeService.getEntityRow(rowNo);
-    const caretPosition = rowData.text.length;
 
     this.activeRow = rowNo;
 
-    if (caretPosition > 0) {
-      setTimeout(() => {
-        setCaretAtPosition(caretPosition, event.target);
-      });
-    }
+    // temporarily switched off
+    // const caretPosition = rowData.text.replace(new RegExp(BR_ELEMENT, 'g'), '').length;
+    // if (caretPosition > 0) {
+    //   setTimeout(() => {
+    //     setCaretAtPosition(caretPosition, event.target.lastChild);
+    //   });
+    // }
 
     if (this.openedToolbar) {
       this.componentRef.instance.activeRow = rowNo;
@@ -196,8 +205,14 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
       if (!event.shiftKey) {
         event.preventDefault();
 
-        const beginText = rowData.text.slice(0, end);
-        const endText = rowData.text.slice(end);
+        const indexes = findAllOccurrencesOfPattern(rowData.text, BR_ELEMENT);
+        const correctionGrade = calculateCorrection(end, indexes, BR_ELEMENT.length);
+
+        const caretPosition = indexes.some((index) => end >= index && end < index + BR_ELEMENT.length) ? 0 : end;
+        const divisionIndex = caretPosition + correctionGrade * BR_ELEMENT.length;
+
+        const beginText = rowData.text.slice(0, divisionIndex);
+        const endText = rowData.text.slice(divisionIndex).replace(new RegExp(`^${BR_ELEMENT}`), '');
 
         const rows: Array<Payload> = [
           {
@@ -225,61 +240,67 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   onKeyEntered(event, rowNo: number): void {
     const { high } = this.rows;
     const rowData = this.treeService.getEntityRow(rowNo);
+    const [, end] = getCaretPosition(event.target);
 
     if (event.key === 'Backspace') {
-      const [, end] = getCaretPosition(event.target);
-
       if (high === 1 || this.activeRow === 1 || end > 0) {
+        // } || end === 0 && rowData.text.startsWith(BR_ELEMENT)) {
         return;
       }
 
       const previousRowData = this.treeService.getEntityRow(rowNo - 1);
-      const caretPosition = previousRowData.text.length;
+      const text = rowData.text === BR_ELEMENT ? '' : rowData.text;
 
-      const text = rowData.text === '<br>' ? '' : rowData.text;
-      this.treeService.removeEntityRow(rowNo, text);
-      this.activeRow -= 1;
-
-      this.repaintEditor();
+      const indexes = findAllOccurrencesOfPattern(previousRowData.text, BR_ELEMENT);
+      const correctionGrade = calculateCorrection(previousRowData.text.length, indexes, BR_ELEMENT.length);
 
       const divAffected = this.divs.find((x, i) => i === rowNo - 2).nativeElement;
+      const caretPosition = calculateCaretPosition(divAffected, correctionGrade * 2);
+
+      this.treeService.removeEntityRow(rowNo, text);
+      this.repaintEditor();
+      this.activeRow -= 1;
 
       if (caretPosition > 0) {
         setTimeout(() => {
-          setCaretAtPosition(caretPosition, divAffected);
+          setCaretAtPosition(caretPosition, divAffected.childNodes[correctionGrade * 2]);
         });
       }
     } else if (event.key === 'Delete') {
-      const [, end] = getCaretPosition(event.target);
-
-      if (end !== rowData.text.length) {
+      if (end !== rowData.text.replace(new RegExp(BR_ELEMENT, 'g'), '').length || rowNo === high) {
         return;
       }
+      event.preventDefault();
 
-      const nextRowData = this.treeService.getEntityRow(rowNo + 1);
-      const caretPosition = rowData.text.length;
-
-      const text = nextRowData.text === '<br>' ? '' : nextRowData.text;
-      this.treeService.removeEntityRow(rowNo + 1, text);
-
-      this.repaintEditor();
+      const indexes = findAllOccurrencesOfPattern(rowData.text, BR_ELEMENT);
+      const correctionGrade = calculateCorrection(rowData.text.length, indexes, BR_ELEMENT.length);
 
       const divAffected = this.divs.find((x, i) => i === rowNo - 1).nativeElement;
+      const caretPosition = calculateCaretPosition(divAffected, correctionGrade * 2);
+
+      const nextRowData = this.treeService.getEntityRow(rowNo + 1);
+      const text = nextRowData.text; // === BR_ELEMENT ? '' : nextRowData.text;
+
+      this.treeService.removeEntityRow(rowNo + 1, text);
+      this.repaintEditor();
 
       if (caretPosition > 0) {
         setTimeout(() => {
-          setCaretAtPosition(caretPosition, divAffected);
+          setCaretAtPosition(caretPosition, divAffected.childNodes[correctionGrade * 2]);
         });
       }
     } else if (event.key === 'ArrowUp') {
-      if (this.activeRow === 1) {
+      if (this.activeRow === 1 || (end !== 0 && rowData.text.includes(BR_ELEMENT))) {
         return;
       }
 
       this.activeRow -= 1;
       this.divs.toArray()[this.activeRow - 1].nativeElement.focus();
     } else if (event.key === 'ArrowDown') {
-      if (this.activeRow === high) {
+      if (
+        this.activeRow === high ||
+        (end !== rowData.text.replace(new RegExp(BR_ELEMENT, 'g'), '').length && rowData.text.includes(BR_ELEMENT))
+      ) {
         return;
       }
 

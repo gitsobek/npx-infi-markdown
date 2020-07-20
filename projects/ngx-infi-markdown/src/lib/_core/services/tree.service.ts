@@ -67,7 +67,7 @@ const defaultEntities: Array<Entity> = [
   },
   {
     rowNo: 2,
-    text: '',
+    text: 'abcd<br>efgh<br>ijk',
     tag: 'paragraph',
     htmlContent: '',
   },
