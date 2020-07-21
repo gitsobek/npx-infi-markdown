@@ -1,1 +1,1 @@
-export type Tag = 'header-lg' | 'header-md' | 'paragraph' | 'quote';
+export type Tag = 'primaryHeader' | 'secondaryHeader' | 'tertiaryHeader' | 'quaternaryHeader' | 'paragraph' | 'quote';

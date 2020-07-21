@@ -13,6 +13,7 @@ import {
   ComponentFactory,
   ComponentRef,
   OnDestroy,
+  Attribute,
 } from '@angular/core';
 import { TreeService } from '../../services/tree.service';
 import { Payload } from '../../models/Payload';
@@ -20,7 +21,7 @@ import { Tag } from '../../models/Tag';
 import { getCaretPosition, setCaretAtPosition } from '../../utils';
 import { MinToolbarComponent } from '../min-toolbar/min-toolbar.component';
 import { Subject, Observable } from 'rxjs';
-import { distinctUntilChanged, startWith } from 'rxjs/operators';
+import { distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'editor',
@@ -43,11 +44,17 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChildren('editableDiv')
   divs: QueryList<any>;
 
-  @ViewChild('hlarge')
-  hLargeEl: ElementRef<any>;
+  @ViewChild('h1')
+  hPrimaryEl: ElementRef<any>;
 
-  @ViewChild('hmedium')
-  hMediumEl: ElementRef<any>;
+  @ViewChild('h2')
+  hSecondaryEl: ElementRef<any>;
+
+  @ViewChild('h3')
+  hTertiaryEl: ElementRef<any>;
+
+  @ViewChild('h4')
+  hQuaternaryEl: ElementRef<any>;
 
   @ViewChild('paragraph')
   paragraphEl: ElementRef<any>;
@@ -92,8 +99,10 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     this.lastSegmentOffset = lastSegment.clientWidth + lastSegment.offsetLeft;
 
     this.tagsMap
-      .set('header-lg', this.hLargeEl)
-      .set('header-md', this.hMediumEl)
+      .set('primaryHeader', this.hPrimaryEl)
+      .set('secondaryHeader', this.hSecondaryEl)
+      .set('tertiaryHeader', this.hTertiaryEl)
+      .set('quaternaryHeader', this.hQuaternaryEl)
       .set('paragraph', this.paragraphEl)
       .set('quote', this.quoteEl);
 
@@ -134,16 +143,38 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.componentRef.instance.activeRow = rowNo;
       this.componentRef.instance.activeTag = this.activeTag;
       this.componentRef.instance.refreshView(rowData);
-
       return;
     }
+
+    const prevActive = this.activeTag;
+    this.activeTag = rowData.tag;
 
     if (this.activeTag && this.activeTag !== rowData.tag) {
       this.renderer.removeClass(this.tagsMap.get(this.activeTag).nativeElement, 'tag--selected');
     }
 
-    this.activeTag = rowData.tag;
+    if (prevActive && prevActive !== this.activeTag) {
+      this.renderer.removeClass(this.tagsMap.get(prevActive).nativeElement, 'tag--selected');
+    }
+
     this.renderer.addClass(this.tagsMap.get(rowData.tag).nativeElement, 'tag--selected');
+  }
+
+  onPaste(event, rowNo: number, ref): void {
+    event.preventDefault();
+
+    const clipboardData = event.clipboardData;
+    const pastedData = clipboardData.getData('Text');
+
+    ref.innerHTML = pastedData;
+
+    const payload = {
+      rowNo,
+      text: pastedData,
+      opName: 'addText',
+    } as Partial<Payload>;
+
+    this.treeService.updateEntityTree(payload);
   }
 
   onTextTyped(event, rowNo: number): void {
@@ -301,13 +332,17 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.componentRef.instance.activeRow = this.activeRow;
 
       this.componentRef.instance.onTagSelect.subscribe(({ tagName, rowTagName }) => {
+        const prevActive = this.activeTag;
         this.activeTag = tagName;
 
         if (this.activeTag && this.activeTag !== rowTagName) {
           this.renderer.removeClass(this.tagsMap.get(rowTagName).nativeElement, 'tag--selected');
         }
 
-        this.activeTag = tagName;
+        if (prevActive && prevActive !== this.activeTag) {
+          this.renderer.removeClass(this.tagsMap.get(prevActive).nativeElement, 'tag--selected');
+        }
+
         this.renderer.addClass(this.tagsMap.get(this.activeTag).nativeElement, 'tag--selected');
       });
     }

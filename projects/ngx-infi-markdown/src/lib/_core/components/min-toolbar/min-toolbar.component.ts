@@ -19,11 +19,17 @@ export class MinToolbarComponent implements AfterViewInit {
   @Output()
   onTagSelect: EventEmitter<any> = new EventEmitter<any>();
 
-  @ViewChild('hlarge')
-  hLargeEl: ElementRef<any>;
+  @ViewChild('h1')
+  hPrimaryEl: ElementRef<any>;
 
-  @ViewChild('hmedium')
-  hMediumEl: ElementRef<any>;
+  @ViewChild('h2')
+  hSecondaryEl: ElementRef<any>;
+
+  @ViewChild('h3')
+  hTertiaryEl: ElementRef<any>;
+
+  @ViewChild('h4')
+  hQuaternaryEl: ElementRef<any>;
 
   @ViewChild('paragraph')
   paragraphEl: ElementRef<any>;
@@ -39,8 +45,10 @@ export class MinToolbarComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.tagsMap
-      .set('header-lg', this.hLargeEl)
-      .set('header-md', this.hMediumEl)
+      .set('primaryHeader', this.hPrimaryEl)
+      .set('secondaryHeader', this.hSecondaryEl)
+      .set('tertiaryHeader', this.hTertiaryEl)
+      .set('quaternaryHeader', this.hQuaternaryEl)
       .set('paragraph', this.paragraphEl)
       .set('quote', this.quoteEl);
 
