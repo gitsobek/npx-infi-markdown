@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { Entity } from '../models/Entity';
 import { Payload } from '../models/Payload';
 import { Tag } from '../models/Tag';
 
 export const defaultStyles: { [key in Tag]: any } = {
-  'header-lg': {
+  primaryHeader: {
     htmlTag: 'h1',
     styles: {
       'font-size': '72px',
@@ -14,10 +14,26 @@ export const defaultStyles: { [key in Tag]: any } = {
       'font-weight': '600',
     },
   },
-  'header-md': {
+  secondaryHeader: {
+    htmlTag: 'h2',
+    styles: {
+      'font-size': '32px',
+      'letter-spacing': '.42px',
+      'font-weight': '400',
+    },
+  },
+  tertiaryHeader: {
     htmlTag: 'h3',
     styles: {
       'font-size': '32px',
+      'letter-spacing': '.42px',
+      'font-weight': '400',
+    },
+  },
+  quaternaryHeader: {
+    htmlTag: 'h4',
+    styles: {
+      'font-size': '25px',
       'letter-spacing': '.42px',
       'font-weight': '400',
     },
@@ -82,10 +98,19 @@ export class TreeService {
   private content$: BehaviorSubject<string> = new BehaviorSubject<string>('');
   contentOb$: Observable<string> = this.content$.asObservable().pipe(distinctUntilChanged());
 
+  private toggleStyles$: Subject<boolean> = new Subject<boolean>();
+  toggleStylesObs$: Observable<boolean> = this.toggleStyles$.asObservable().pipe(distinctUntilChanged());
+
   private entityTree: Entity[] = defaultEntities;
+  private userStyles: { [key in Tag]: any };
 
   constructor() {
     this.initDefaultEntityTree();
+    this.listenForStyleChange();
+  }
+
+  setStyles(userStyles: { [key in Tag]: any }): void {
+    this.userStyles = userStyles;
   }
 
   get entityValues(): Array<string> {
@@ -95,6 +120,16 @@ export class TreeService {
   private initDefaultEntityTree(): void {
     this.entityTree.forEach((entity: Entity) => (entity.htmlContent = this.createSegment(entity.text, entity.tag)));
     this.content$.next(this.buildView());
+  }
+
+  private listenForStyleChange(): void {
+    this.toggleStylesObs$.subscribe((state: boolean) => {
+      this.entityTree.forEach(
+        (entity: Entity) => (entity.htmlContent = this.createSegment(entity.text, entity.tag, state))
+      );
+      const html = this.buildView();
+      this.content$.next(html);
+    });
   }
 
   private updateRowNos(index: number): void {
@@ -157,7 +192,11 @@ export class TreeService {
     this.content$.next(html);
   }
 
-  private buildView(): string {
+  toggleStyles(state: boolean): void {
+    this.toggleStyles$.next(state);
+  }
+
+  public buildView(): string {
     let html = '<div style="padding: 0 50px">';
 
     for (const entity of this.entityTree.filter((ent) => ent.text !== '')) {
@@ -169,10 +208,23 @@ export class TreeService {
     return html;
   }
 
-  private createSegment(text: string, tag: Tag) {
+  private createSegment(text: string, tag: Tag, loadCustomStyles: boolean = false) {
     let segment = '<div style="margin: 40px 0">';
 
-    const { htmlTag, styles } = defaultStyles[tag];
+    let { htmlTag, styles } = defaultStyles[tag];
+
+    if (loadCustomStyles) {
+      if (this.userStyles != null && this.userStyles.constructor.name === 'Object') {
+        if (tag in this.userStyles) {
+          styles = {
+            ...styles,
+            ...this.pickStyles(this.userStyles[tag]),
+          };
+        }
+      } else {
+        console.warn(`[infi-markdown] Empty or invalid style model provided.`);
+      }
+    }
 
     segment += `<${htmlTag} style="${this.injectInlineStyles(styles)}">${text}</${htmlTag}>`;
     segment += '</div>';
@@ -187,5 +239,29 @@ export class TreeService {
     return Object.entries(styles)
       .map(([k, v]) => `${k}: ${v}`)
       .join(';');
+  }
+
+  private pickStyles(styles): any {
+    const sanitizedStyles = {};
+
+    for (const key of Object.keys(styles)) {
+      const properKey = key.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase());
+      if (['[object String]', '[object Number]'].includes(Object.prototype.toString.call(styles[key]))) {
+        sanitizedStyles[properKey] = styles[key];
+      } else if (key === 'fontFamily' && Array.isArray(styles[key])) {
+        sanitizedStyles[properKey] = styles[key]
+          .filter((font) => Object.prototype.toString.call(font) === '[object String]')
+          .map((str: string) => {
+            if (/\s/.test(str)) {
+              return `'${str}'`;
+            }
+
+            return str;
+          })
+          .join(', ');
+      }
+    }
+
+    return sanitizedStyles;
   }
 }

@@ -24,7 +24,7 @@ export class ResizableDirective implements OnInit {
 
   ngOnInit(): void {
     this.windowWidth = window.innerWidth;
-    this.el.nativeElement.style['border-right'] = this.resizableGrabWidth + 'px dashed #D2DBE9';
+    this.el.nativeElement.style['border-right'] = this.resizableGrabWidth + 'px dashed #D3DAEA';
   }
 
   @HostListener('window:resize', ['$event'])
