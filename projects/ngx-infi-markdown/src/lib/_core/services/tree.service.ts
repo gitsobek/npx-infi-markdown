@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { Entity } from '../models/Entity';
 import { Payload } from '../models/Payload';
 import { Tag } from '../models/Tag';
+import { objectCloneDeep } from '../utils';
 
 export const defaultStyles: { [key in Tag]: any } = {
   primaryHeader: {
@@ -36,6 +37,26 @@ export const defaultStyles: { [key in Tag]: any } = {
       'font-size': '25px',
       'letter-spacing': '.42px',
       'font-weight': '400',
+    },
+  },
+  orderedList: {
+    htmlTag: 'li',
+    parentHtmlTag: 'ol',
+    styles: {
+      'font-size': '25px',
+      'letter-spacing': '.42px',
+      'font-weight': '400',
+      'list-style-type': 'decimal',
+    },
+  },
+  unorderedList: {
+    htmlTag: 'li',
+    parentHtmlTag: 'ul',
+    styles: {
+      'font-size': '25px',
+      'letter-spacing': '.42px',
+      'font-weight': '400',
+      'list-style-type': 'disc',
     },
   },
   paragraph: {
@@ -98,38 +119,48 @@ export class TreeService {
   private content$: BehaviorSubject<string> = new BehaviorSubject<string>('');
   contentOb$: Observable<string> = this.content$.asObservable().pipe(distinctUntilChanged());
 
-  private toggleStyles$: Subject<boolean> = new Subject<boolean>();
+  private toggleStyles$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   toggleStylesObs$: Observable<boolean> = this.toggleStyles$.asObservable().pipe(distinctUntilChanged());
 
   private entityTree: Entity[] = defaultEntities;
   private userStyles: { [key in Tag]: any };
+  private styles: { [key in Tag]: any };
 
   constructor() {
-    this.initDefaultEntityTree();
     this.listenForStyleChange();
   }
 
-  setStyles(userStyles: { [key in Tag]: any }): void {
+  private listenForStyleChange(): void {
+    this.toggleStylesObs$.subscribe((state: boolean) => {
+      this.setStyles(state);
+      this.rebuildAllSegments();
+      this.content$.next(this.buildView());
+    });
+  }
+
+  private setStyles(loadCustomStyles: boolean = false): void {
+    const styles = objectCloneDeep(defaultStyles);
+    if (loadCustomStyles) {
+      if (this.userStyles != null && this.userStyles.constructor.name === 'Object') {
+        for (const [key, style] of Object.entries(styles)) {
+          style.styles = {
+            ...style.styles,
+            ...this.pickStyles(this.userStyles[key]),
+          };
+        }
+      } else {
+        console.warn(`[infi-markdown] Empty or invalid style model provided.`);
+      }
+    }
+    this.styles = styles;
+  }
+
+  setUserStyles(userStyles: { [key in Tag]: any }): void {
     this.userStyles = userStyles;
   }
 
   get entityValues(): Array<string> {
     return this.entityTree.map((entity: Entity) => entity.text);
-  }
-
-  private initDefaultEntityTree(): void {
-    this.entityTree.forEach((entity: Entity) => (entity.htmlContent = this.createSegment(entity.text, entity.tag)));
-    this.content$.next(this.buildView());
-  }
-
-  private listenForStyleChange(): void {
-    this.toggleStylesObs$.subscribe((state: boolean) => {
-      this.entityTree.forEach(
-        (entity: Entity) => (entity.htmlContent = this.createSegment(entity.text, entity.tag, state))
-      );
-      const html = this.buildView();
-      this.content$.next(html);
-    });
   }
 
   private updateRowNos(index: number): void {
@@ -172,7 +203,7 @@ export class TreeService {
         rowNo,
         text,
         tag,
-        htmlContent: this.createSegment(text, tag),
+        htmlContent: this.createSegment(text, tag, rowNo - 1),
       };
     } else {
       let { text: currentText, tag: currentTag } = this.entityTree[rowNo - 1];
@@ -184,22 +215,31 @@ export class TreeService {
         ...this.entityTree[rowNo - 1],
         text: currentText,
         tag: currentTag,
-        htmlContent: this.createSegment(currentText, currentTag),
+        htmlContent: this.createSegment(currentText, currentTag, rowNo - 1),
       };
     }
 
-    const html = this.buildView();
-    this.content$.next(html);
+    if (tag === 'orderedList' || tag === 'unorderedList') {
+      this.rebuildAllSegments();
+    }
+
+    this.content$.next(this.buildView());
   }
 
   toggleStyles(state: boolean): void {
     this.toggleStyles$.next(state);
   }
 
-  public buildView(): string {
-    let html = '<div style="padding: 0 50px">';
+  private rebuildAllSegments(): void {
+    this.entityTree.forEach((entity: Entity, index: number) => {
+      entity.htmlContent = this.createSegment(entity.text, entity.tag, index);
+    });
+  }
 
-    for (const entity of this.entityTree.filter((ent) => ent.text !== '')) {
+  public buildView(): string {
+    let html = '<div style="padding: 15px 50px">';
+
+    for (const entity of this.entityTree) {
       const _content = entity?.htmlContent || '';
       html += _content;
     }
@@ -208,27 +248,29 @@ export class TreeService {
     return html;
   }
 
-  private createSegment(text: string, tag: Tag, loadCustomStyles: boolean = false) {
-    let segment = '<div style="margin: 25px 0">';
+  private createSegment(text: string, tag: Tag, index: number): string {
+    let segment = '';
 
-    let { htmlTag, styles } = defaultStyles[tag];
+    const { htmlTag, styles, parentHtmlTag = 'div' } = this.styles[tag];
+    const listElementType = this.checkListType(tag, index);
 
-    if (loadCustomStyles) {
-      if (this.userStyles != null && this.userStyles.constructor.name === 'Object') {
-        if (tag in this.userStyles) {
-          styles = {
-            ...styles,
-            ...this.pickStyles(this.userStyles[tag]),
-          };
-        }
-      } else {
-        console.warn(`[infi-markdown] Empty or invalid style model provided.`);
-      }
-    }
-
+    segment += listElementType.includes('middle') ? '' : '<div style="margin: 25px 0">';
+    segment += listElementType.includes('first') ? `<${parentHtmlTag} style="margin: 25px 0">` : '';
     segment += `<${htmlTag} style="${this.injectInlineStyles(styles)}">${text}</${htmlTag}>`;
-    segment += '</div>';
+    segment += listElementType.includes('last') ? `</${parentHtmlTag}>` : '';
+    segment += listElementType.includes('middle') ? '' : '</div>';
     return segment;
+  }
+
+  private checkListType(tag: Tag, entityTreeIndex: number): Array<'first' | 'last' | 'middle'> {
+    const attributes = [];
+    if (!['orderedList', 'unorderedList'].includes(tag)) {
+      return attributes;
+    }
+    attributes.push('middle');
+    this.entityTree[entityTreeIndex - 1]?.tag !== tag && attributes.push('first');
+    this.entityTree[entityTreeIndex + 1]?.tag !== tag && attributes.push('last');
+    return attributes;
   }
 
   private injectInlineStyles(styles): string {
@@ -242,6 +284,10 @@ export class TreeService {
   }
 
   private pickStyles(styles): any {
+    if (!styles) {
+      return {};
+    }
+
     const sanitizedStyles = {};
 
     for (const key of Object.keys(styles)) {

@@ -30,7 +30,7 @@ import { TreeService } from './_core/services/tree.service';
 })
 export class NgxInfiMarkdownComponent implements OnInit {
   @Input() set styles(value: { [key in Tag]: any }) {
-    this.treeService.setStyles(value);
+    this.treeService.setUserStyles(value);
   }
 
   previewWidth: string;
