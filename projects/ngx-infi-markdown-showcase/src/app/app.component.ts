@@ -40,6 +40,18 @@ export class AppComponent {
       color: 'rgb(61, 90, 254)',
       textAlign: 'center',
     },
+    orderedList: {
+      fontFamily: ['Playfair Display', 'sans-serif'],
+      fontSize: '21px',
+      letterSpacing: '.84px',
+      color: '#312b80',
+    },
+    unorderedList: {
+      fontFamily: ['Playfair Display', 'sans-serif'],
+      fontSize: '21px',
+      letterSpacing: '.84px',
+      color: '#312b80',
+    },
     paragraph: {
       fontFamily: ['Playfair Display', 'sans-serif'],
       fontSize: '21px',

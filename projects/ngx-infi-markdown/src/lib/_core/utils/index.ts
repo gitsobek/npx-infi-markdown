@@ -79,3 +79,20 @@ export function calculateCaretPosition(div: HTMLDivElement, ind: number): number
   }
   return cp;
 }
+
+/**
+ * Deep cloning for objects, default JS behavior for the rest of types
+ * @param obj: T
+ * @returns T
+ */
+export function objectCloneDeep<T>(obj: T): T {
+  const result: T = {} as T;
+  for (const [key, value] of Object.entries(obj)) {
+    if (Object.prototype.toString.call(value) === '[object Object]') {
+      result[key] = objectCloneDeep(value);
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}

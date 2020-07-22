@@ -64,6 +64,12 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('h4')
   hQuaternaryEl: ElementRef<any>;
 
+  @ViewChild('ol')
+  olEl: ElementRef<any>;
+
+  @ViewChild('ul')
+  ulEl: ElementRef<any>;
+
   @ViewChild('paragraph')
   paragraphEl: ElementRef<any>;
 
@@ -111,6 +117,8 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
       .set('secondaryHeader', this.hSecondaryEl)
       .set('tertiaryHeader', this.hTertiaryEl)
       .set('quaternaryHeader', this.hQuaternaryEl)
+      .set('orderedList', this.olEl)
+      .set('unorderedList', this.ulEl)
       .set('paragraph', this.paragraphEl)
       .set('quote', this.quoteEl);
 
@@ -331,6 +339,8 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.renderer.addClass(this.tagsMap.get(tagName).nativeElement, 'tag--selected');
+
+    this.divs.toArray()[this.activeRow - 1].nativeElement.focus();
   }
 
   openToolbar(hamburgerRef: any): void {
