@@ -67,7 +67,7 @@ const defaultEntities: Array<Entity> = [
   },
   {
     rowNo: 2,
-    text: 'abcd<br>efgh<br>ijk',
+    text: '',
     tag: 'paragraph',
     htmlContent: '',
   },
@@ -209,7 +209,7 @@ export class TreeService {
   }
 
   private createSegment(text: string, tag: Tag, loadCustomStyles: boolean = false) {
-    let segment = '<div style="margin: 40px 0">';
+    let segment = '<div style="margin: 25px 0">';
 
     let { htmlTag, styles } = defaultStyles[tag];
 
