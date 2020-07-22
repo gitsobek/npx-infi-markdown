@@ -11,7 +11,7 @@ export function getCaretPosition(elem) {
   if (sel.anchorNode == elem) cum_length = [sel.anchorOffset, sel.extentOffset];
   else {
     const nodes_to_find = [sel.anchorNode, sel.extentNode];
-    if (!elem.contains(sel.anchorNode) || !elem.contains(sel.extentNode)) return undefined;
+    if (!elem.contains(sel.anchorNode) /* || !elem.contains(sel.extentNode)*/) return undefined;
     else {
       let found = [0, 0] as [number | boolean, number | boolean];
       let i;
@@ -37,14 +37,45 @@ export function getCaretPosition(elem) {
   return [cum_length[1], cum_length[0]];
 }
 
-export function setCaretAtPosition(caretPosition: number, element: HTMLDivElement): void {
-  const textNode = element.lastChild;
+export function setCaretAtPosition(cp: number, element: HTMLElement): void {
+  const caretPosition = Math.min(cp, element.nodeValue.length);
 
   const range = document.createRange();
-  range.setStart(textNode, caretPosition);
-  range.setEnd(textNode, caretPosition);
+  range.setStart(element, caretPosition);
+  range.setEnd(element, caretPosition);
 
   const selection = window.getSelection();
   selection.removeAllRanges();
   selection.addRange(range);
+}
+
+export function findAllOccurrencesOfPattern(str: string, pattern: string): Array<number> {
+  const indexes = [];
+  for (let i = str.indexOf(pattern); i > -1; i = str.indexOf(pattern, i + 1)) {
+    indexes.push(i);
+  }
+  return indexes;
+}
+
+export function calculateCorrection(caretPosition: number, indexes: Array<number>, patternLength: number): number {
+  let finish = false;
+  let i = 0;
+  while (!finish) {
+    if (!indexes[i] || indexes[i] - i * patternLength >= caretPosition) {
+      finish = true;
+    } else {
+      i++;
+    }
+  }
+  return i;
+}
+
+export function calculateCaretPosition(div: HTMLDivElement, ind: number): number {
+  let i = ind;
+  let cp = 0;
+  while (div.childNodes[i] && div.childNodes[i].nodeType === Node.TEXT_NODE) {
+    cp += div.childNodes[i].nodeValue.length;
+    i++;
+  }
+  return cp;
 }
