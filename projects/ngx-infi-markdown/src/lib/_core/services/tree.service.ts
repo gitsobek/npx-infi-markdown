@@ -43,20 +43,22 @@ export const defaultStyles: { [key in Tag]: any } = {
     htmlTag: 'li',
     parentHtmlTag: 'ol',
     styles: {
-      'font-size': '25px',
+      'font-size': '21px',
       'letter-spacing': '.42px',
       'font-weight': '400',
       'list-style-type': 'decimal',
+      'list-style-position': 'inside',
     },
   },
   unorderedList: {
     htmlTag: 'li',
     parentHtmlTag: 'ul',
     styles: {
-      'font-size': '25px',
+      'font-size': '21px',
       'letter-spacing': '.42px',
       'font-weight': '400',
       'list-style-type': 'disc',
+      'list-style-position': 'inside',
     },
   },
   paragraph: {
