@@ -2,7 +2,7 @@
 <div [style.height]="hiddenSegments ? '70px' : 'auto'" class="tags">
     <div class="tag-col tag-col--1"></div>
     <div #toolbar class="tag-col tag-col--2">
-        <div *ngIf="hiddenSegments" #hamburger class="hamburger" (click)="openToolbar(hamburger)">
+        <div #hamburger *ngIf="hiddenSegments" class="hamburger" (click)="openToolbar(hamburger)">
             <div class="bar1"></div>
             <div class="bar2"></div>
             <div class="bar3"></div>
@@ -11,17 +11,17 @@
         <div [style.visibility]="hiddenSegments ? 'hidden' : 'visible' " class="tag-segments">
             <span class="tag-info">Headers</span>
             <div class="separator"></div>
-            <div #h1 (click)="onTagSet('primaryHeader')" class="tag tag--h1">1</div>
-            <div #h2 (click)="onTagSet('secondaryHeader')" class="tag tag--h2">2</div>
-            <div #h3 (click)="onTagSet('tertiaryHeader')" class="tag tag--h3">3</div>
-            <div #h4 (click)="onTagSet('quaternaryHeader')" class="tag tag--h4">4</div>
+            <div #h1 tooltip="Primary header" (click)="onTagSet('primaryHeader')" class="tag tag--h1">1</div>
+            <div #h2 tooltip="Secondary header" (click)="onTagSet('secondaryHeader')" class="tag tag--h2">2</div>
+            <div #h3 tooltip="Tertiary header" (click)="onTagSet('tertiaryHeader')" class="tag tag--h3">3</div>
+            <div #h4 tooltip="Quaternary header" (click)="onTagSet('quaternaryHeader')" class="tag tag--h4">4</div>
         </div>
 
         <div [style.visibility]="hiddenSegments ? 'hidden' : 'visible' " class="tag-segments">
             <span class="tag-info">Text</span>
             <div class="separator"></div>
-            <div #paragraph (click)="onTagSet('paragraph')" class="tag tag--paragraph">p</div>
-            <div #quote (click)="onTagSet('quote')" class="tag tag--quote">
+            <div #paragraph tooltip="Paragraph" (click)="onTagSet('paragraph')" class="tag tag--paragraph">p</div>
+            <div #quote tooltip="Quote" (click)="onTagSet('quote')" class="tag tag--quote">
               <img src="../../../../assets/quote.png">
             </div>
         </div>
@@ -29,8 +29,8 @@
         <div [style.visibility]="hiddenSegments ? 'hidden' : 'visible' " class="tag-segments">
             <span class="tag-info">Lists</span>
             <div class="separator"></div>
-            <div #ol (click)="onTagSet('orderedList')" class="tag tag--ol">OL</div>
-            <div #ul (click)="onTagSet('unorderedList')" class="tag tag--ul">UL</div>
+            <div #ol tooltip="Ordered list" (click)="onTagSet('orderedList')" class="tag tag--ol">OL</div>
+            <div #ul tooltip="Unordered list" (click)="onTagSet('unorderedList')" class="tag tag--ul">UL</div>
           </div>
     </div>
 </div>
