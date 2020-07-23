@@ -1,18 +1,11 @@
 <!-- Tag selector -->
-<div class="tags">
+<div [style.height]="hiddenSegments ? '70px' : 'auto'" class="tags">
     <div class="tag-col tag-col--1"></div>
     <div #toolbar class="tag-col tag-col--2">
         <div *ngIf="hiddenSegments" #hamburger class="hamburger" (click)="openToolbar(hamburger)">
             <div class="bar1"></div>
             <div class="bar2"></div>
             <div class="bar3"></div>
-        </div>
-
-        <div [style.visibility]="hiddenSegments ? 'hidden' : 'visible' " class="tag-segments">
-          <span class="tag-info">Lists</span>
-          <div class="separator"></div>
-          <div #ol (click)="onTagSet('orderedList')" class="tag tag--ol">OL</div>
-          <div #ul (click)="onTagSet('unorderedList')" class="tag tag--ul">UL</div>
         </div>
 
         <div [style.visibility]="hiddenSegments ? 'hidden' : 'visible' " class="tag-segments">
@@ -32,6 +25,13 @@
               <img src="../../../../assets/quote.png">
             </div>
         </div>
+
+        <div [style.visibility]="hiddenSegments ? 'hidden' : 'visible' " class="tag-segments">
+            <span class="tag-info">Lists</span>
+            <div class="separator"></div>
+            <div #ol (click)="onTagSet('orderedList')" class="tag tag--ol">OL</div>
+            <div #ul (click)="onTagSet('unorderedList')" class="tag tag--ul">UL</div>
+          </div>
     </div>
 </div>
 

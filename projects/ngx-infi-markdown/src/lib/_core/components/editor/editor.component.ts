@@ -13,7 +13,6 @@ import {
   ComponentFactory,
   ComponentRef,
   OnDestroy,
-  Attribute,
 } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
@@ -41,9 +40,9 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   width: number;
   activeTag: Tag;
   activeRow: number;
-  lastSegmentOffset: number;
-  hiddenSegments: boolean;
   openedToolbar: boolean;
+  hiddenSegments: boolean;
+  largestSegmentWidth: number;
   componentRef: ComponentRef<MinToolbarComponent>;
 
   private toolbarState$: Subject<boolean> = new Subject<boolean>();
@@ -82,7 +81,7 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('toolbarContainer', { read: ViewContainerRef }) container;
 
   @Input() set currWidth(value: number) {
-    this.hiddenSegments = value < this.lastSegmentOffset + 10;
+    this.hiddenSegments = value < this.largestSegmentWidth + 100;
 
     if (!this.hiddenSegments) {
       this.openedToolbar = this.hiddenSegments;
@@ -109,8 +108,7 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     const toolbarChildren = Array.from(this.toolbar.nativeElement.children);
-    const lastSegment = toolbarChildren[toolbarChildren.length - 1] as HTMLElement;
-    this.lastSegmentOffset = lastSegment.clientWidth + lastSegment.offsetLeft;
+    this.largestSegmentWidth = Math.max(...toolbarChildren.map((o: HTMLElement) => o.clientWidth), 0);
 
     this.tagsMap
       .set('primaryHeader', this.hPrimaryEl)

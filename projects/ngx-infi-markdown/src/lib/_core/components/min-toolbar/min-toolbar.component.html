@@ -1,7 +1,5 @@
 <div class="toolbar">
     <div class="tag-segments">
-        <span class="tag-info">Headers</span>
-        <div class="separator"></div>
         <div #h1 (click)="onTagSet('primaryHeader')" class="tag tag--h1">1</div>
         <div #h2 (click)="onTagSet('secondaryHeader')" class="tag tag--h2">2</div>
         <div #h3 (click)="onTagSet('tertiaryHeader')" class="tag tag--h3">3</div>
@@ -9,9 +7,12 @@
     </div>
 
     <div class="tag-segments">
-        <span class="tag-info">Text</span>
-        <div class="separator"></div>
         <div #paragraph (click)="onTagSet('paragraph')" class="tag tag--paragraph">p</div>
         <div #quote (click)="onTagSet('quote')" class="tag tag--quote"><img src="../../../../assets/quote.png"></div>
     </div>
+
+    <div class="tag-segments">
+        <div #ol (click)="onTagSet('orderedList')" class="tag tag--ol">OL</div>
+        <div #ul (click)="onTagSet('unorderedList')" class="tag tag--ul">UL</div>
+      </div>
 </div>

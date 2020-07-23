@@ -37,6 +37,12 @@ export class MinToolbarComponent implements AfterViewInit {
   @ViewChild('quote')
   quoteEl: ElementRef<any>;
 
+  @ViewChild('ol')
+  olEl: ElementRef<any>;
+
+  @ViewChild('ul')
+  ulEl: ElementRef<any>;
+
   tagsMap: Map<string, ElementRef>;
 
   constructor(private renderer: Renderer2, private treeService: TreeService) {
@@ -49,6 +55,8 @@ export class MinToolbarComponent implements AfterViewInit {
       .set('secondaryHeader', this.hSecondaryEl)
       .set('tertiaryHeader', this.hTertiaryEl)
       .set('quaternaryHeader', this.hQuaternaryEl)
+      .set('orderedList', this.olEl)
+      .set('unorderedList', this.ulEl)
       .set('paragraph', this.paragraphEl)
       .set('quote', this.quoteEl);
 

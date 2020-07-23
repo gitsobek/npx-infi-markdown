@@ -30,6 +30,7 @@ export class ResizableDirective implements OnInit {
   @HostListener('window:resize', ['$event'])
   onResize(event) {
     this.windowWidth = window.innerWidth;
+    this.setWidth(this.windowWidth / 2 - this.el.nativeElement.offsetLeft);
   }
 
   @HostListener('document:mousemove', ['$event'])
