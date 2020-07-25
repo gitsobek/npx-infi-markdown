@@ -5,8 +5,9 @@ import { Entity } from '../models/Entity';
 import { Payload } from '../models/Payload';
 import { Tag } from '../models/Tag';
 import { objectCloneDeep } from '../utils';
+import { DefaultStyles, UserStyles, Style, SanitizedStyle } from '../models/Style';
 
-export const defaultStyles: { [key in Tag]: any } = {
+export const defaultStyles: DefaultStyles = {
   primaryHeader: {
     htmlTag: 'h1',
     styles: {
@@ -125,8 +126,8 @@ export class TreeService {
   toggleStylesObs$: Observable<boolean> = this.toggleStyles$.asObservable().pipe(distinctUntilChanged());
 
   private entityTree: Entity[] = defaultEntities;
-  private userStyles: { [key in Tag]: any };
-  private styles: { [key in Tag]: any };
+  private userStyles: UserStyles;
+  private styles: DefaultStyles;
 
   constructor() {
     this.listenForStyleChange();
@@ -157,7 +158,7 @@ export class TreeService {
     this.styles = styles;
   }
 
-  setUserStyles(userStyles: { [key in Tag]: any }): void {
+  setUserStyles(userStyles: UserStyles): void {
     this.userStyles = userStyles;
   }
 
@@ -285,7 +286,7 @@ export class TreeService {
       .join(';');
   }
 
-  private pickStyles(styles): any {
+  private pickStyles(styles: Style): SanitizedStyle | {} {
     if (!styles) {
       return {};
     }
@@ -297,7 +298,7 @@ export class TreeService {
       if (['[object String]', '[object Number]'].includes(Object.prototype.toString.call(styles[key]))) {
         sanitizedStyles[properKey] = styles[key];
       } else if (key === 'fontFamily' && Array.isArray(styles[key])) {
-        sanitizedStyles[properKey] = styles[key]
+        sanitizedStyles[properKey] = (styles[key] as string[])
           .filter((font) => Object.prototype.toString.call(font) === '[object String]')
           .map((str: string) => {
             if (/\s/.test(str)) {

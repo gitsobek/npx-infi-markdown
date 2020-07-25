@@ -6,8 +6,6 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  title = 'Showcase of infi-markdown';
-
   articleStyles = {
     primaryHeader: {
       fontFamily: ['Playfair Display', 'sans-serif'],
@@ -63,6 +61,7 @@ export class AppComponent {
       fontFamily: ['Playfair Display', 'sans-serif'],
       fontStyle: 'italic',
       fontSize: '24px',
+      borderLeft: '1px solid #3d5afe',
       color: 'rgb(49, 43, 128)',
       textAlign: 'left',
     },
