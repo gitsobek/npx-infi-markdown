@@ -1,6 +1,6 @@
-import { Component, OnInit, ViewEncapsulation, Input, Output } from '@angular/core';
-import { Tag } from './_core/models/Tag';
+import { Component, OnInit, ViewEncapsulation, Input } from '@angular/core';
 import { TreeService } from './_core/services/tree.service';
+import { UserStyles } from './_core/models/Style';
 
 @Component({
   selector: 'ngx-infi-markdown',
@@ -10,7 +10,6 @@ import { TreeService } from './_core/services/tree.service';
         appResizable
         #appResizable="appResizable"
         [resizableMinWidth]="250"
-        [currWidth]="editorWidth"
         (onWidthChange)="handleWidthChange($event)"
         class="child"
       ></editor>
@@ -29,20 +28,18 @@ import { TreeService } from './_core/services/tree.service';
   encapsulation: ViewEncapsulation.None,
 })
 export class NgxInfiMarkdownComponent implements OnInit {
-  @Input() set styles(value: { [key in Tag]: any }) {
+  @Input() set styles(value: UserStyles) {
     this.treeService.setUserStyles(value);
   }
 
   previewWidth: string;
-  editorWidth: number;
 
   constructor(private treeService: TreeService) {}
 
   ngOnInit(): void {}
 
   handleWidthChange(event: any): void {
-    const { percWidth, pxWidth } = event;
-    this.editorWidth = pxWidth;
+    const { percWidth } = event;
     this.previewWidth = 100 - percWidth + '%';
   }
 

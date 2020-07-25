@@ -7,7 +7,6 @@ import {
   ViewChild,
   ElementRef,
   Renderer2,
-  Input,
   ViewContainerRef,
   ComponentFactoryResolver,
   ComponentFactory,
@@ -15,7 +14,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
-import { distinctUntilChanged } from 'rxjs/operators';
+import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { MinToolbarComponent } from '../min-toolbar/min-toolbar.component';
 import { TreeService } from '../../services/tree.service';
 import { Payload } from '../../models/Payload';
@@ -27,6 +26,7 @@ import {
   getCaretPosition,
   setCaretAtPosition,
 } from '../../utils';
+import { ResizableDirective } from '../../directives/resizable.directive';
 
 const BR_ELEMENT = '<br>';
 
@@ -47,6 +47,8 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private toolbarState$: Subject<boolean> = new Subject<boolean>();
   toolbarStateObs$: Observable<boolean> = this.toolbarState$.asObservable().pipe(distinctUntilChanged());
+
+  private destroy$: Subject<void>;
 
   @ViewChildren('editableDiv')
   divs: QueryList<any>;
@@ -80,29 +82,31 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild('toolbarContainer', { read: ViewContainerRef }) container;
 
-  @Input() set currWidth(value: number) {
-    this.hiddenSegments = value < this.largestSegmentWidth + 100;
-
-    if (!this.hiddenSegments) {
-      this.openedToolbar = this.hiddenSegments;
-      this.toolbarState$.next(this.openedToolbar);
-    }
-  }
-
   tagsMap: Map<string, ElementRef>;
 
   constructor(
     private renderer: Renderer2,
     private treeService: TreeService,
-    private resolver: ComponentFactoryResolver
+    private resolver: ComponentFactoryResolver,
+    private resizableDirective: ResizableDirective
   ) {
     this.rows = range(1, treeService.entityValues.length);
     this.tagsMap = new Map<string, ElementRef>();
+    this.destroy$ = new Subject<void>();
   }
 
   ngOnInit(): void {
-    this.toolbarStateObs$.subscribe((isOpened: boolean) => {
+    this.toolbarStateObs$.pipe(takeUntil(this.destroy$)).subscribe((isOpened: boolean) => {
       this.toggleToolbar(isOpened);
+    });
+
+    this.resizableDirective.onWidthChange.pipe(takeUntil(this.destroy$)).subscribe(({ pxWidth: value }) => {
+      this.hiddenSegments = value < this.largestSegmentWidth + 100;
+
+      if (!this.hiddenSegments) {
+        this.openedToolbar = this.hiddenSegments;
+        this.toolbarState$.next(this.openedToolbar);
+      }
     });
   }
 
@@ -120,13 +124,15 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
       .set('paragraph', this.paragraphEl)
       .set('quote', this.quoteEl);
 
-    this.divs.changes.subscribe((data: any) => {
+    this.divs.changes.pipe(takeUntil(this.destroy$)).subscribe((data: any) => {
       data._results[this.activeRow - 1].nativeElement.focus();
     });
     this.repaintEditor();
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
     this.componentRef.destroy();
   }
 
@@ -141,9 +147,8 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  onFocus(event, rowNo: number): void {
+  onFocus(event: FocusEvent, rowNo: number): void {
     const rowData = this.treeService.getEntityRow(rowNo);
-
     this.activeRow = rowNo;
 
     // temporarily switched off
@@ -175,7 +180,7 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     this.renderer.addClass(this.tagsMap.get(rowData.tag).nativeElement, 'tag--selected');
   }
 
-  onPaste(event, rowNo: number, ref): void {
+  onPaste(event: ClipboardEvent, rowNo: number, ref: any): void {
     event.preventDefault();
 
     const clipboardData = event.clipboardData;
@@ -192,17 +197,17 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     this.treeService.updateEntityTree(payload);
   }
 
-  onTextTyped(event, rowNo: number): void {
+  onTextTyped(event: InputEvent, rowNo: number): void {
     const payload = {
       rowNo,
-      text: event.target.innerHTML,
+      text: (event.target as any).innerHTML,
       opName: 'addText',
     } as Partial<Payload>;
 
     this.treeService.updateEntityTree(payload);
   }
 
-  onKeyPressed(event, rowNo: number): void {
+  onKeyPressed(event: KeyboardEvent, rowNo: number): void {
     const rowData = this.treeService.getEntityRow(rowNo);
 
     if (event.key === 'Enter') {
@@ -243,7 +248,7 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  onKeyEntered(event, rowNo: number): void {
+  onKeyEntered(event: KeyboardEvent, rowNo: number): void {
     const { high } = this.rows;
     const rowData = this.treeService.getEntityRow(rowNo);
     const [, end] = getCaretPosition(event.target);
@@ -357,10 +362,8 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     } else {
       const factory: ComponentFactory<MinToolbarComponent> = this.resolver.resolveComponentFactory(MinToolbarComponent);
       this.componentRef = this.container.createComponent(factory);
-
       this.componentRef.instance.activeRow = this.activeRow;
-
-      this.componentRef.instance.onTagSelect.subscribe(({ tagName, rowTagName }) => {
+      this.componentRef.instance.onTagSelect.pipe(takeUntil(this.destroy$)).subscribe(({ tagName, rowTagName }) => {
         const prevActive = this.activeTag;
         this.activeTag = tagName;
 

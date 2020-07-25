@@ -10,7 +10,6 @@ import {
   ViewContainerRef,
   ComponentFactoryResolver,
   HostListener,
-  ReflectiveInjector,
   OnDestroy,
 } from '@angular/core';
 import { TooltipComponent } from '../components/tooltip/tooltip.component';
@@ -42,14 +41,16 @@ export class TooltipDirective implements OnDestroy {
     }
 
     const factory = this.resolver.resolveComponentFactory(TooltipComponent);
-    const injector = ReflectiveInjector.resolveAndCreate([
-      {
-        provide: 'tooltipConfig',
-        useValue: {
-          host: this.el.nativeElement,
+    const injector = Injector.create({
+      providers: [
+        {
+          provide: 'tooltipConfig',
+          useValue: {
+            host: this.el.nativeElement,
+          },
         },
-      },
-    ]);
+      ],
+    });
     this.componentRef = this.vcr.createComponent(factory, 0, injector, this.generateContent());
   }
 
