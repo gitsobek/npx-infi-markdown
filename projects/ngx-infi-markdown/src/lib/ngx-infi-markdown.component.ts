@@ -1,6 +1,7 @@
-import { Component, OnInit, ViewEncapsulation, Input } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, Input, Optional, Inject } from '@angular/core';
 import { TreeService } from './_core/services/tree.service';
 import { UserStyles } from './_core/models/Style';
+import { USER_STYLE_CONFIG } from './_core/configs';
 
 @Component({
   selector: 'ngx-infi-markdown',
@@ -29,12 +30,14 @@ import { UserStyles } from './_core/models/Style';
 })
 export class NgxInfiMarkdownComponent implements OnInit {
   @Input() set styles(value: UserStyles) {
-    this.treeService.setUserStyles(value);
+    this.treeService.setUserStyles(value, false);
   }
 
   previewWidth: string;
 
-  constructor(private treeService: TreeService) {}
+  constructor(private treeService: TreeService, @Optional() @Inject(USER_STYLE_CONFIG) config: UserStyles) {
+    config && this.treeService.setUserStyles(config, true);
+  }
 
   ngOnInit(): void {}
 

@@ -128,6 +128,7 @@ export class TreeService {
   private entityTree: Entity[] = defaultEntities;
   private userStyles: UserStyles;
   private styles: DefaultStyles;
+  private isGlobalConfig: boolean;
 
   constructor() {
     this.listenForStyleChange();
@@ -158,7 +159,15 @@ export class TreeService {
     this.styles = styles;
   }
 
-  setUserStyles(userStyles: UserStyles): void {
+  setUserStyles(userStyles: UserStyles, shouldOverride: boolean): void {
+    if (this.isGlobalConfig) {
+      return;
+    }
+
+    if (shouldOverride) {
+      this.isGlobalConfig = true;
+    }
+
     this.userStyles = userStyles;
   }
 
