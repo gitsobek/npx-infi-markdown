@@ -12,7 +12,11 @@
     </div>
 
     <div class="tag-segments">
-        <div #ol (click)="onTagSet('orderedList')" class="tag tag--ol">OL</div>
-        <div #ul (click)="onTagSet('unorderedList')" class="tag tag--ul">UL</div>
+        <div #ol tooltip="Ordered list" (click)="onTagSet('orderedList')" class="tag tag--ol">
+            <img src="../../../../assets/ordered-list.png">
+        </div>
+        <div #ul tooltip="Unordered list" (click)="onTagSet('unorderedList')" class="tag tag--ul">
+            <img src="../../../../assets/unordered-list.png">
+        </div>
       </div>
 </div>

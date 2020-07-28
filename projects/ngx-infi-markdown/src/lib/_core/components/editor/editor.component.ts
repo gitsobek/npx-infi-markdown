@@ -12,9 +12,10 @@ import {
   ComponentFactory,
   ComponentRef,
   OnDestroy,
+  Inject,
 } from '@angular/core';
-import { Subject, Observable } from 'rxjs';
-import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { Subject, Observable, merge, fromEvent } from 'rxjs';
+import { distinctUntilChanged, takeUntil, filter, take } from 'rxjs/operators';
 import { MinToolbarComponent } from '../min-toolbar/min-toolbar.component';
 import { TreeService } from '../../services/tree.service';
 import { Payload } from '../../models/Payload';
@@ -27,8 +28,12 @@ import {
   setCaretAtPosition,
 } from '../../utils';
 import { ResizableDirective } from '../../directives/resizable.directive';
+import { StorageService } from '../../services/storage.service';
+import { Entity } from '../../models/Entity';
+import { IMAGES_BASE64 } from '../../configs';
 
 const BR_ELEMENT = '<br>';
+const STORAGE_KEY = 'INFI_MARKDOWN_DRAFT';
 
 @Component({
   selector: 'editor',
@@ -40,6 +45,7 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   width: number;
   activeTag: Tag;
   activeRow: number;
+  images = IMAGES_BASE64;
   openedToolbar: boolean;
   hiddenSegments: boolean;
   largestSegmentWidth: number;
@@ -88,14 +94,31 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     private renderer: Renderer2,
     private treeService: TreeService,
     private resolver: ComponentFactoryResolver,
-    private resizableDirective: ResizableDirective
+    private resizableDirective: ResizableDirective,
+    @Inject(StorageService) private storageService: StorageService
   ) {
-    this.rows = range(1, treeService.entityValues.length);
     this.tagsMap = new Map<string, ElementRef>();
     this.destroy$ = new Subject<void>();
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    if (this.storageService) {
+      const savedEntity: Entity[] | null = this.storageService.getItem(STORAGE_KEY) || null;
+      this.treeService.loadEntity(savedEntity);
+    } else {
+      this.treeService.loadEntity(null);
+    }
+
+    merge(fromEvent(window, 'beforeunload'), this.destroy$)
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(() => this.treeService.typed),
+        take(1)
+      )
+      .subscribe(() => {
+        this.storageService.setItem(STORAGE_KEY, this.treeService.entity);
+      });
+
     this.toolbarStateObs$.pipe(takeUntil(this.destroy$)).subscribe((isOpened: boolean) => {
       this.toggleToolbar(isOpened);
     });
@@ -108,6 +131,8 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
         this.toolbarState$.next(this.openedToolbar);
       }
     });
+
+    this.repaintEditor();
   }
 
   ngAfterViewInit(): void {
@@ -125,9 +150,8 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
       .set('quote', this.quoteEl);
 
     this.divs.changes.pipe(takeUntil(this.destroy$)).subscribe((data: any) => {
-      data._results[this.activeRow - 1].nativeElement.focus();
+      this.activeRow && data._results[this.activeRow - 1].nativeElement.focus();
     });
-    this.repaintEditor();
   }
 
   ngOnDestroy(): void {

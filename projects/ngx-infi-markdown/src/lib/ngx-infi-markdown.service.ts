@@ -11,7 +11,7 @@ export class NgxInfiMarkdownService {
   /**
    * Returns observable of currently created content
    *
-   * @return {Observable} content
+   * @return {Observable} content observable
    */
   html$(): Observable<string> {
     return this.treeService.contentOb$;
@@ -20,7 +20,7 @@ export class NgxInfiMarkdownService {
   /**
    * Returns currently created content synchronously
    *
-   * @return {string} this - chainable object
+   * @return {string} content
    */
   getHtml(): string {
     return this.treeService.buildView();

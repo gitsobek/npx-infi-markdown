@@ -22,15 +22,19 @@
             <div class="separator"></div>
             <div #paragraph tooltip="Paragraph" (click)="onTagSet('paragraph')" class="tag tag--paragraph">p</div>
             <div #quote tooltip="Quote" (click)="onTagSet('quote')" class="tag tag--quote">
-              <img src="../../../../assets/quote.png">
+              <img [src]="images.quote">
             </div>
         </div>
 
         <div [style.visibility]="hiddenSegments ? 'hidden' : 'visible' " class="tag-segments">
             <span class="tag-info">Lists</span>
             <div class="separator"></div>
-            <div #ol tooltip="Ordered list" (click)="onTagSet('orderedList')" class="tag tag--ol">OL</div>
-            <div #ul tooltip="Unordered list" (click)="onTagSet('unorderedList')" class="tag tag--ul">UL</div>
+            <div #ol tooltip="Ordered list" (click)="onTagSet('orderedList')" class="tag tag--ol">
+                <img [src]="images.orderedList">
+            </div>
+            <div #ul tooltip="Unordered list" (click)="onTagSet('unorderedList')" class="tag tag--ul">
+                <img [src]="images.unorderedList">
+            </div>
           </div>
     </div>
 </div>

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { distinctUntilChanged } from 'rxjs/operators';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { distinctUntilChanged, take, switchMap } from 'rxjs/operators';
 import { Entity } from '../models/Entity';
 import { Payload } from '../models/Payload';
 import { Tag } from '../models/Tag';
@@ -85,7 +85,7 @@ export const defaultStyles: DefaultStyles = {
 const defaultEntities: Array<Entity> = [
   {
     rowNo: 1,
-    text: 'Hi,',
+    text: '',
     tag: 'paragraph',
     htmlContent: '',
   },
@@ -97,13 +97,13 @@ const defaultEntities: Array<Entity> = [
   },
   {
     rowNo: 3,
-    text: 'Have fun while using this editor.',
+    text: '',
     tag: 'paragraph',
     htmlContent: '',
   },
   {
     rowNo: 4,
-    text: '---',
+    text: '',
     tag: 'paragraph',
     htmlContent: '',
   },
@@ -125,7 +125,9 @@ export class TreeService {
   private toggleStyles$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   toggleStylesObs$: Observable<boolean> = this.toggleStyles$.asObservable().pipe(distinctUntilChanged());
 
-  private entityTree: Entity[] = defaultEntities;
+  private entity$: Subject<Entity[]> = new Subject<Entity[]>();
+
+  private entityTree: Entity[];
   private userStyles: UserStyles;
   private styles: DefaultStyles;
   private isGlobalConfig: boolean;
@@ -135,11 +137,22 @@ export class TreeService {
   }
 
   private listenForStyleChange(): void {
-    this.toggleStylesObs$.subscribe((state: boolean) => {
-      this.setStyles(state);
-      this.rebuildAllSegments();
-      this.content$.next(this.buildView());
-    });
+    this.entity$
+      .asObservable()
+      .pipe(
+        take(1),
+        switchMap((entity: Entity[] | null) => {
+          const _entity = entity ? entity : defaultEntities;
+          this.setEntityTree(_entity);
+
+          return this.toggleStylesObs$;
+        })
+      )
+      .subscribe((state: boolean) => {
+        this.setStyles(state);
+        this.rebuildAllSegments();
+        this.content$.next(this.buildView());
+      });
   }
 
   private setStyles(loadCustomStyles: boolean = false): void {
@@ -171,8 +184,20 @@ export class TreeService {
     this.userStyles = userStyles;
   }
 
+  setEntityTree(entity: Entity[]): void {
+    this.entityTree = entity;
+  }
+
+  get entity(): Entity[] {
+    return this.entityTree;
+  }
+
   get entityValues(): Array<string> {
     return this.entityTree.map((entity: Entity) => entity.text);
+  }
+
+  get typed(): boolean {
+    return this.entityTree.some(({ text }) => text);
   }
 
   private updateRowNos(index: number): void {
@@ -236,6 +261,10 @@ export class TreeService {
     }
 
     this.content$.next(this.buildView());
+  }
+
+  loadEntity(entity: Entity[] | null): void {
+    this.entity$.next(entity);
   }
 
   toggleStyles(state: boolean): void {

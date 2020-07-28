@@ -96,3 +96,17 @@ export function objectCloneDeep<T>(obj: T): T {
   }
   return result;
 }
+
+function matched<T>(x: T) {
+  return {
+    on: () => matched(x),
+    otherwise: () => x,
+  };
+}
+
+export function match<T extends string>(x: T) {
+  return {
+    on: (pred: Function, fn: Function) => (pred(x) ? matched(fn(x)) : match(x)),
+    otherwise: (fn: Function) => fn(x),
+  };
+}
