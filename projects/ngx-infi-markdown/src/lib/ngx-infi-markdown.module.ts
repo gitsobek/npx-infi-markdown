@@ -10,6 +10,13 @@ import { TooltipDirective } from './_core/directives/tooltip.directive';
 import { TooltipComponent } from './_core/components/tooltip/tooltip.component';
 import { UserStyles } from './_core/models/Style';
 import { USER_STYLE_CONFIG } from './_core/configs';
+import { StorageService, LocalStorageService, SessionStorageService } from './_core/services/storage.service';
+import { match } from './_core/utils';
+
+type Config = Partial<{
+  styles: UserStyles;
+  storageType: 'none' | 'localStorage' | 'sessionStorage';
+}>;
 
 @NgModule({
   declarations: [
@@ -26,13 +33,28 @@ import { USER_STYLE_CONFIG } from './_core/configs';
   exports: [NgxInfiMarkdownComponent],
 })
 export class NgxInfiMarkdownModule {
-  static forRoot(stylesConfig: UserStyles): ModuleWithProviders {
+  static forRoot({ styles = null, storageType = 'none' }: Config): ModuleWithProviders {
     return {
       ngModule: NgxInfiMarkdownModule,
       providers: [
         {
           provide: USER_STYLE_CONFIG,
-          useValue: stylesConfig,
+          useValue: styles,
+        },
+        {
+          provide: StorageService,
+          useFactory: () => {
+            return match(storageType)
+              .on(
+                (x: string) => x === 'localStorage',
+                () => new LocalStorageService()
+              )
+              .on(
+                (x: string) => x === 'sessionStorage',
+                () => new SessionStorageService()
+              )
+              .otherwise((x: string) => null);
+          },
         },
       ],
     };

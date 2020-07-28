@@ -45,11 +45,6 @@
     align-items: center;
     height: 100%;
 
-    img {
-        width: 10px;
-        height: 10px;
-    }
-
     &--1 {
         width: 70px;
         background-image: linear-gradient(45deg,hsla(0,0%,100%,0) 25%,rgba(0,0,0,.08) 0,rgba(0,0,0,.08) 50%,hsla(0,0%,100%,0) 0,hsla(0,0%,100%,0) 75%,rgba(0,0,0,.08) 0,rgba(0,0,0,.08));
@@ -70,14 +65,24 @@
         margin-left: 70px;
         flex-wrap: wrap;
     }
-}
 
-.tag-segments {
-    height: 100%;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    margin: 5px 20px 5px 0;
+    .tag-segments {
+        height: 100%;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin: 5px 20px 5px 0;
+
+        &:nth-child(2) img {
+            width: 10px;
+            height: 10px;
+        }
+
+        &:nth-child(3) img {
+            width: 20px;
+            height: 20px;
+        }
+    }
 }
 
 .tag-info {

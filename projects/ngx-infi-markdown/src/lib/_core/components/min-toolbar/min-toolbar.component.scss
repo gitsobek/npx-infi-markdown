@@ -13,9 +13,14 @@
     flex-direction: row;
     align-items: center;
 
-    img {
+    &:nth-child(2) img {
         width: 10px;
         height: 10px;
+    }
+
+    &:nth-child(3) img {
+        width: 20px;
+        height: 20px;
     }
 }
 

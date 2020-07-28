@@ -35,8 +35,8 @@ export class NgxInfiMarkdownComponent implements OnInit {
 
   previewWidth: string;
 
-  constructor(private treeService: TreeService, @Optional() @Inject(USER_STYLE_CONFIG) config: UserStyles) {
-    config && this.treeService.setUserStyles(config, true);
+  constructor(private treeService: TreeService, @Optional() @Inject(USER_STYLE_CONFIG) styleConfig: UserStyles) {
+    styleConfig && this.treeService.setUserStyles(styleConfig, true);
   }
 
   ngOnInit(): void {}
