@@ -3,6 +3,7 @@ import { Tag } from '../../models/Tag';
 import { TreeService } from '../../services/tree.service';
 import { Payload } from '../../models/Payload';
 import { Entity } from '../../models/Entity';
+import { IMAGES_BASE64 } from '../../configs';
 
 @Component({
   selector: 'min-toolbar',
@@ -43,6 +44,7 @@ export class MinToolbarComponent implements AfterViewInit {
   @ViewChild('ul')
   ulEl: ElementRef<any>;
 
+  images = IMAGES_BASE64;
   tagsMap: Map<string, ElementRef>;
 
   constructor(private renderer: Renderer2, private treeService: TreeService) {

@@ -1,6 +1,13 @@
 import { Injectable } from '@angular/core';
+import { Entity } from '../models/Entity';
 
-class StorageService {
+interface IStorage<T> {
+  getItem: (key: string) => T;
+  setItem: (key: string, value: any) => void;
+  removeItem: (key: string) => void;
+}
+
+export class StorageService implements IStorage<Entity[]> {
   private storage: Storage;
 
   constructor(storage: Storage) {

@@ -1,6 +1,6 @@
 {
   "name": "ngx-infi-markdown",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged",
@@ -20,7 +20,7 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "build": "npm run build:lib && npm run build:showcase",
-    "build:lib": "npm run copy:readme && ng build ngx-infi-markdown",
+    "build:lib": "ng build --prod ngx-infi-markdown && npm run copy:readme",
     "build:showcase": "ng build --prod ngx-infi-markdown-showcase --base-href='https://gitsobek.github.io/ngx-infi-markdown/'",
     "publish:demo": "npx angular-cli-ghpages --dir=dist/ngx-infi-markdown-showcase",
     "copy:readme": "copyfiles ./README.md ./dist/ngx-infi-markdown",
