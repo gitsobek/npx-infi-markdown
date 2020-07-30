@@ -8,15 +8,15 @@
 
     <div class="tag-segments">
         <div #paragraph (click)="onTagSet('paragraph')" class="tag tag--paragraph">p</div>
-        <div #quote (click)="onTagSet('quote')" class="tag tag--quote"><img src="../../../../assets/quote.png"></div>
+        <div #quote (click)="onTagSet('quote')" class="tag tag--quote"><img [src]="images.quote"></div>
     </div>
 
     <div class="tag-segments">
         <div #ol tooltip="Ordered list" (click)="onTagSet('orderedList')" class="tag tag--ol">
-            <img src="../../../../assets/ordered-list.png">
+            <img [src]="images.orderedList">
         </div>
         <div #ul tooltip="Unordered list" (click)="onTagSet('unorderedList')" class="tag tag--ul">
-            <img src="../../../../assets/unordered-list.png">
+            <img [src]="images.unorderedList">
         </div>
       </div>
 </div>

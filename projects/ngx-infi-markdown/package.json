@@ -1,6 +1,29 @@
 {
   "name": "ngx-infi-markdown",
-  "version": "0.0.1",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gitsobek/ngx-infi-markdown.git"
+  },
+  "license": "MIT",
+  "homepage": "https://gitsobek.github.io/ngx-infi-markdown/",
+  "author": {
+    "name": "Piotr Sobuś",
+    "email": "sobus.piotr@gmail.com"
+  },
+  "keywords": [
+    "markdown editor",
+    "text editor",
+    "html editor",
+    "angular",
+    "markdown",
+    "editor",
+    "preview",
+    "rxjs",
+    "ngx",
+    "ng",
+    "ivy"
+  ],
   "peerDependencies": {
     "@angular/common": "^9.1.11",
     "@angular/core": "^9.1.11"
