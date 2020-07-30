@@ -18,6 +18,7 @@ type Config = Partial<{
   storageType: 'none' | 'localStorage' | 'sessionStorage';
 }>;
 
+// @dynamic
 @NgModule({
   declarations: [
     NgxInfiMarkdownComponent,
