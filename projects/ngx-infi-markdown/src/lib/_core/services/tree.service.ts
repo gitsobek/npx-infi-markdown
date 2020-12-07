@@ -19,7 +19,7 @@ export const defaultStyles: DefaultStyles = {
   secondaryHeader: {
     htmlTag: 'h2',
     styles: {
-      'font-size': '32px',
+      'font-size': '48px',
       'letter-spacing': '.42px',
       'font-weight': '400',
     },

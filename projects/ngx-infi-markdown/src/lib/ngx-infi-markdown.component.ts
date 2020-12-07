@@ -5,28 +5,8 @@ import { USER_STYLE_CONFIG } from './_core/configs';
 
 @Component({
   selector: 'ngx-infi-markdown',
-  template: `
-    <div class="row">
-      <editor
-        appResizable
-        #appResizable="appResizable"
-        [resizableMinWidth]="250"
-        (onWidthChange)="handleWidthChange($event)"
-        class="child"
-      ></editor>
-
-      <preview [style.width]="previewWidth" class="child"></preview>
-
-      <div class="switcher">
-        <label class="switch">
-          <input (change)="toggleStyles($event)" type="checkbox" />
-          <span class="slider round"></span>
-        </label>
-      </div>
-    </div>
-  `,
+  templateUrl: './ngx-infi-markdown.component.html',
   styleUrls: ['./ngx-infi-markdown.component.scss'],
-  encapsulation: ViewEncapsulation.None,
 })
 export class NgxInfiMarkdownComponent implements OnInit {
   @Input() set styles(value: UserStyles) {

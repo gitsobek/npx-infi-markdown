@@ -1,0 +1,18 @@
+<div class="row">
+  <editor
+    appResizable
+    #appResizable="appResizable"
+    [resizableMinWidth]="250"
+    (onWidthChange)="handleWidthChange($event)"
+    class="child"
+  ></editor>
+
+  <preview [style.width]="previewWidth" class="child"></preview>
+
+  <div class="switcher">
+    <label class="switch">
+      <input (change)="toggleStyles($event)" type="checkbox" />
+      <span class="slider round"></span>
+    </label>
+  </div>
+</div>

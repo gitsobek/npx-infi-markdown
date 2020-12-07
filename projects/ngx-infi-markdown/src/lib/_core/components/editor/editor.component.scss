@@ -27,6 +27,7 @@
     border: none;
     padding: 10px;
     cursor: text;
+    box-sizing: border-box;
 }
 
 .tags {
@@ -44,6 +45,7 @@
     flex-direction: row;
     align-items: center;
     height: 100%;
+    box-sizing: border-box;
 
     &--1 {
         width: 70px;
