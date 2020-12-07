@@ -80,6 +80,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 ngx-infi-markdown
+MIT
 
 regenerator-runtime
 MIT
